@@ -30,7 +30,7 @@ module OTTER_MCU(input CLK,
 );           
     wire [6:0] opcode;
     wire [31:0] pc, pc_value, next_pc, jalr_pc, branch_pc, jump_pc, int_pc,A,B,
-        I_immed,S_immed,U_immed,aluBin,aluAin,aluResult,rfIn,csr_reg, mem_data;
+        aluBin,aluAin,aluResult,rfIn,csr_reg, mem_data;
     
     wire [31:0] IR;
     wire memRead1,memRead2;
@@ -111,12 +111,14 @@ module OTTER_MCU(input CLK,
     assign next_pc = pc + 4;    //PC is byte aligned, memory is word aligned
     assign jalr_pc = I_immed + A;
     //assign branch_pc = pc + {{21{IR[31]}},IR[7],IR[30:25],IR[11:8] ,1'b0};   //word aligned addresses
-    assign branch_pc = pc + {{20{IR[31]}},IR[7],IR[30:25],IR[11:8],1'b0};   //byte aligned addresses
-    assign jump_pc = pc + {{12{IR[31]}}, IR[19:12], IR[20],IR[30:21],1'b0};
-    assign int_pc = 0;
+    //assign branch_pc = pc + {{20{IR[31]}},IR[7],IR[30:25],IR[11:8],1'b0};   //byte aligned addresses
+	assign branch_pc = pc + B_immed;
+    //assign jump_pc = pc + {{12{IR[31]}}, IR[19:12], IR[20],IR[30:21],1'b0};
+    assign jump_pc = pc + J_immed;
+	assign int_pc = 0;
     
     logic br_lt,br_eq,br_ltu;
-    //Branch Condition Generator
+    // Branch Condition Generator
    	brCondGen BRANCH_COND_GEN(
 	   	A,
    		B,
@@ -124,18 +126,20 @@ module OTTER_MCU(input CLK,
 		br_lt,
 		br_ltu);
 
-    //always_comb
-    //begin
-    //    br_lt=0; br_eq=0; br_ltu=0;
-    //    if($signed(A) < $signed(B)) br_lt=1;
-    //    if(A==B) br_eq=1;
-    //    if(A<B) br_ltu=1;
-    //end
-    
+	// Immediate Generator
+	wire [31:0] U_immed, I_immed, S_immed, J_immed, B_immed;
+	ImmedGen IMMED_GEN(
+		IR,			
+		U_immed,
+		I_immed,
+		S_immed,
+		J_immed,
+		B_immed);
+	
     // Generate immediates
-    assign S_immed = {{20{IR[31]}},IR[31:25],IR[11:7]};
-    assign I_immed = {{20{IR[31]}},IR[31:20]};
-    assign U_immed = {IR[31:12],{12{1'b0}}};
+    //assign S_immed = {{20{IR[31]}},IR[31:25],IR[11:7]};
+    //assign I_immed = {{20{IR[31]}},IR[31:20]};
+    //assign U_immed = {IR[31:12],{12{1'b0}}};
 
                            
      OTTER_mem_byte #(14) memory  (
