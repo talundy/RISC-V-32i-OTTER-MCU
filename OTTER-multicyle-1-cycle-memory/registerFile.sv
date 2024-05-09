@@ -37,6 +37,7 @@ module OTTER_registerFile(Read1,Read2,WriteReg,WriteData,RegWrite,Data1,Data2,cl
         if(Read2==0) Data2 =0;
         else Data2 = RF[Read2];
     
+    // Write on negedge so that next read is accurate
     always@(posedge clock) begin // write the register with the new value if Regwrite is high
         if(RegWrite && WriteReg!=0) RF[WriteReg] <= WriteData;
         
