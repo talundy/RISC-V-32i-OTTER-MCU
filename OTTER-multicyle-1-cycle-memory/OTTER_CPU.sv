@@ -107,14 +107,24 @@ module OTTER_MCU(input CLK,
 		wb_sel,
 		rfIn);
   
-    //pc target calculations 
-    assign next_pc = pc + 4;    //PC is byte aligned, memory is word aligned
-    assign jalr_pc = I_immed + A;
+    // Branch Address Generator
+	BrAddrGen BRANCH_ADDR_GEN(
+		J_immed,
+		B_immed,
+		I_immed,
+		pc,
+		A,
+		jalr_pc,
+		branch_pc,
+		jump_pc);
+	
+	assign next_pc = pc + 4;    //PC is byte aligned, memory is word aligned
+    //assign jalr_pc = I_immed + A;
     //assign branch_pc = pc + {{21{IR[31]}},IR[7],IR[30:25],IR[11:8] ,1'b0};   //word aligned addresses
     //assign branch_pc = pc + {{20{IR[31]}},IR[7],IR[30:25],IR[11:8],1'b0};   //byte aligned addresses
-	assign branch_pc = pc + B_immed;
+	//assign branch_pc = pc + B_immed;
     //assign jump_pc = pc + {{12{IR[31]}}, IR[19:12], IR[20],IR[30:21],1'b0};
-    assign jump_pc = pc + J_immed;
+    //assign jump_pc = pc + J_immed;
 	assign int_pc = 0;
     
     logic br_lt,br_eq,br_ltu;
