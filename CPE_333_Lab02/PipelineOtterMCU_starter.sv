@@ -33,8 +33,32 @@ module OTTER_MCU (
 );
 
     Instr_t instr;
-    
+	
+// *********************************************************************************
+// * Interrupt/Reset Logic
+// *********************************************************************************
 
+// CSR Registers and interrupt logic
+	CSR CSRs(
+		.clk(CLK),
+		.rst(RESET),
+		.intTaken(intTaken),
+		.addr(IR[31:20]),
+		.next_pc(pc),
+		.wd(aluResult),
+		.wr_en(csrWrite),
+		.rd(csr_reg),
+		.mepc(mepc),
+		.mtvec(mtvec),
+		.mie(mie));
+   
+	always_ff @ (posedge CLK)
+	begin
+		if(INTR && mie)
+			prev_INT = 1'b1;
+		if(intCLK || RESET)
+			prev_INT = 1'b0;
+	end
 
 
 // *********************************************************************************
@@ -42,12 +66,7 @@ module OTTER_MCU (
 // *********************************************************************************
 
 // FETCH SIGNALS
-	assign next_pc = pc + 4;
-	assign jalr_pc = I_immed + A;		// I_immed should come from ID_EX Pipeline Register
-	// byte-aligned address. This needs to move to the Decode stage.
-	assign branch_pc = pc + {{20{IR[31]}}, IR[7], IR[30:25], IR[11:8], 1'b0};
-	// This calculation needs to move to Decode stage
-	assign jump_pc = pc + {{12{IR[31]}}, IR[19:12], IR[20], IR[30:21], 1'b0};	
+	assign next_pc = pc + 4; //byte-aligned
 
 
 // Program Counter
@@ -70,14 +89,37 @@ module OTTER_MCU (
 		mepc,
 		pc_sel,		// select
 		pc_value)	// output 
+		
+// INSTRUCTION/DATA MEMORY
 // Memory module is declared here, but also used in Memory stage. 
+// Instruction Memory is port 1, Data Memory is port 2
+	OTTER_mem_byte #(14) memory(
+		.MEM_CLK(CLK),
+		.MEM_ADDR1(pc),
+		.MEM_ADDR2(aluResult),
+		.MEM_DIN2(B),
+		.MEM_WRITE2(memWrite),
+		.MEM_READ1(memRead1),
+		.MEM_READ2(memRead2),
+		.ERR(), 				// ??
+		.MEM_DOUT1(IR),
+		.MEM_DOUT2(mem_data),
+		.IO_IN(IOBUS_IN),
+		.IO_WR(IOBUS_WR),
+		.MEM_SIZE(IR[13:12]), 	// ??
+		.MEMSIGN(IR[14]));		// ??
 
 // *********************************************************************************
 // * Decode (Register File) stage
 // *********************************************************************************
-    
+   
+// Decode Stage Connections
+	logic br_lt, br_eq, br_ltu;
+	wire [31:0], U_immed, I_immed, S_immed, J_immed, B_immed;
+
+
 // Decoder Unit. This unit will be modified to account for pipelining. 
-   OTTER_CU_Decoder CU_DECODER(
+   OTTER_PL_Decoder CU_DECODER(
    		// Inputs
 		.CU_OPCODE(opcode),
 		.CU_FUNC3(IR[14:12]),
@@ -85,33 +127,58 @@ module OTTER_MCU (
 		.CU_BR_EQ(br_eq), 
 		.CU_BR_LT(br_lt),
 		.CU_BR_LTU(bt_ltu),
+		.intTaken(intTaken),
 		// Outputs
 		.CU_PCSOURCE(pc_sel),
 		.CU_ALU_SRCA(opA_sel),
 		.CU_ALU_SRCB(opB_sel),
 		.CU_ALU_FUN(alu_fun),
 		.CU_RF_WR_SEL(wb_sel),
-		.intTaken(intTaken));
+		.PC_WRITE(),
+		.REG_WRITE(),
+		.MEM_WRITE(),
+		.MEM_READ_1(),		// Instruction Memory
+		.MEM_READ_2());		// Data Memory
 
+// Branch Address Generator
+	BrAddrGen BRANCH_ADDR_GEN(
+		J_immed,
+		B_immed,
+		I_immed,
+		pc,
+		A,
+		jalr_pc,
+		branch_pc,
+		jump_pc);
+
+// Branch Condition Generator
+	brCondGen BRANCH_COND_GEN(
+		A,
+		B,
+		br_eq,
+		br_lt,
+		br_ltu);
+
+// Immediate Generator
+	ImmedGen IMMED_GEN(
+		IR,
+		U_immed,
+		I_immed,
+		S_immed,
+		J_immed,
+		B_immed);
+
+// Register File
+	OTTER_registerFile RF(
+		IR[19:15],
+		IR[24:20],
+		IR[11:7],
+		rfIn,
+		regWrite,
+		A,
+		B,
+		CLK);
 		
-// BRANCH CONDITION GENERATOR
-// 		This should be declared in a separate module. Until then,
-	logic br_lt, br_eq, br_ltu;
-	always_comb
-	begin
-		br_lt = 0;
-		br_eq = 0;
-		br_ltu= 0;
-		if($signed(A) < $signed(B)) br_lt = 1;
-		if(A == B) br_eq = 1;
-		if(A < B) br_ltu = 1;
-	end
-// IMMED_GEN
-// 		As with above, needs to be modulated.
-	assign S_immed = {{20{IR[31]}},IR[31:25],IR[11:7]};
-	assign I_immed = {{20{IR[31]}},IR[31:20]};
-	assign U_immed = {IR[31:12], {12{1'b0}}};
-
 // *********************************************************************************
 // * Execute (ALU) Stage
 // *********************************************************************************
@@ -134,7 +201,11 @@ module OTTER_MCU (
 
 
 // RISC-V ALU
-   OTTER_ALU ALU(alu_fun, aluAin, aluBin, aluResult); 
+   OTTER_ALU ALU(
+	   alu_fun, 
+	   aluAin, 
+	   aluBin, 
+	   aluResult); 
 
 // *********************************************************************************
 // * Memory (Data Memory) stage 
@@ -145,5 +216,20 @@ module OTTER_MCU (
 // * Write (Write Back) stage
 // *********************************************************************************
     
+// Register Input Multiplexor
+	Mutlt4to1 regWriteback(
+		next_pc,
+		csr_reg,
+		mem_data,
+		aluResult,
+		wb_sel,
+		rfIn);
+
+// *********************************************************************************
+// * MMIO Stuff
+// *********************************************************************************
+	assign IOBUS_ADDR = aluResult;
+	assign IOBUS_OUT = B;
+
 
 endmodule
