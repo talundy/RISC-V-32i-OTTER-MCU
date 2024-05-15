@@ -5,20 +5,112 @@
 
 // ! Add Signals Here
 typedef struct packed {
-    logic [31:0] PC;
-    logic [31:0] IR;
-    logic [4:0] rs1_addr;
-    logic [4:0] rs2_addr;
-    logic [4:0] rd_addr;
-    logic [31:0] rs1_data;
-    logic [31:0] rs2_data;
-    logic [31:0] imm;
-    logic [3:0] alu_fun;
-    logic srcB_sel;
-    logic regWrite;
-    logic [1:0] rf_sel;
-    logic memWrite;
-    logic memRead;
+
+// Fetch Stage Signals ///////////////////////////////////////
+	logic [31:0] ir_IF;
+	logic [31:0] pc_IF;
+	logic [31:0] next_pc_IF;
+
+// Decode Stage Signals ///////////////////////////////////////
+   	
+	//****** DECODER ******//
+	// CONTROL OUTPUTS
+	logic [3:0] alu_fun_ID;
+	logic alu_srcA_ID;
+	logic [1:0] alu_srcB_ID;
+	logic [1:0] rf_wr_sel_ID;
+	logic [3:0] pcSource_ID;
+		// READ/WRITE
+	logic pcWrite_ID, regWrite_ID, memWrite_ID, memRead1_ID, memRead2_ID;
+	// CONTROL INPUTS
+	logic br_lt, br_eq, br_ltu; // No ID postfix as these don't progress through pipeine
+
+
+	//****** REGISTER FILE ******//
+	logic [31:0] rs1_ID, rs2_ID;
+
+	//****** BRANCH COND. GEN, IMMEDIATES *******//
+	logic [31:0] U_immed_ID;
+	logic [31:0] I_immed_ID;
+	logic [31:0] S_immed_ID;
+	logic [31:0] B_immed_ID;
+	logic [31:0] J_immed_ID;
+	logic [31:0] jal_ID;
+	logic [31:0] branch_ID;
+	logic [31:0] jalr_ID;
+	
+	//****** PASSTHROUGHS *******//
+	logic [31:0] ir_ID, pc_ID, next_pc_ID;
+
+
+// Execute Stage Signals ///////////////////////////////////////
+   	//****** DECODER ******//
+	// CONTROL OUTPUTS
+	logic [3:0] alu_fun_EX;
+	logic alu_srcA_EX;
+	logic [1:0] alu_srcB_EX;
+	logic [1:0] rf_wr_sel_EX;
+	logic [3:0] pcSource_EX;
+		// READ/WRITE
+	logic pcWrite_EX, regWrite_EX, memWrite_EX, memRead1_EX, memRead2_EX;
+	
+	//****** INSTRUCTION STUFF ********//
+	logic [6:0] opcode;
+	logic [3:0] func3;
+	logic [5:0] func7;
+	//logic [10:0] func12;	//ir[31:20]	
+	logic [4:0] rs1_addr, rs2 addr, rd_addr;	
+	logic [1:0] size_EX;
+	logic sign_EX;
+
+	//****** BRANCH COND. GEN, IMMEDIATES *******//
+	logic [31:0] U_immed_EX;
+	logic [31:0] I_immed_EX;
+	logic [31:0] S_immed_EX;
+	logic [31:0] B_immed_EX;
+	logic [31:0] J_immed_EX;
+	logic [31:0] jal_EX;
+	logic [31:0] branch_EX;
+	logic [31:0] jalr_EX;
+
+	//****** INSTRUCTION STUFF ********//
+	logic [31:0] rs1_EX, rs2_EX;
+
+   	//****** JUMP/BRANCH ******//
+	logic[31:0] jal_EX, branch_EX, jalr_EX;
+   	
+	//****** ALU ******//
+	logic [31:0] alu_result_EX;
+
+	//****** PASSTHROUGHS *******//
+	logic [31:0] ir_EX, pc_EX, next_pc_EX;
+
+
+// Memory Stage Signals ///////////////////////////////////////
+  	logic [31:0] alu_result_MEM;
+	logic [31:0] next_pc_MEM;   
+	logic [31:0] rs2_MEM;
+	logic [4:0] rd_addr_MEM;
+
+   	//****** CONTROL ******//
+	logic regWrite_MEM;
+	logic [1:0] rf_wr_sel_MEM;
+	logic memRead2_MEM;
+	logic memWrite_MEM;
+	logic [1:0] size_MEM;
+	logic sign_MEM;
+
+// Writeback Stage Signals ///////////////////////////////////////
+	logic [31:0] dout2;	
+	logic [31:0] alu_result_WB;
+	logic [31:0] next_pc_WB;
+	logic regWrite_WB;
+	logic [1:0] rf_wr_sel_WB;
+	logic [4:0] rd_addr_MEM;
+
+// Interrupt/Reset/Ind. Signals ///////////////////////////////////////
+	logic intTaken;
+
 } Instr_t;
 
 
@@ -33,7 +125,15 @@ module OTTER_MCU (
 );
 
     Instr_t instr;
-	
+
+// *********************************************************************************
+// * MMIO Stuff
+// *********************************************************************************
+	assign IOBUS_ADDR = alu_result;
+	assign IOBUS_OUT = B;
+
+
+
 // *********************************************************************************
 // * Interrupt/Reset Logic
 // *********************************************************************************
@@ -43,9 +143,9 @@ module OTTER_MCU (
 		.clk(CLK),
 		.rst(RESET),
 		.intTaken(intTaken),
-		.addr(IR[31:20]),
+		.addr(ir[31:20]),
 		.next_pc(pc),
-		.wd(aluResult),
+		.wd(alu_result),
 		.wr_en(csrWrite),
 		.rd(csr_reg),
 		.mepc(mepc),
@@ -97,18 +197,18 @@ module OTTER_MCU (
 	OTTER_mem_byte #(14) memory(
 		.MEM_CLK(CLK),
 		.MEM_ADDR1(pc),
-		.MEM_ADDR2(aluResult),
+		.MEM_ADDR2(alu_result),
 		.MEM_DIN2(B),
 		.MEM_WRITE2(memWrite),
 		.MEM_READ1(memRead1),
 		.MEM_READ2(memRead2),
 		.ERR(), 				// ??
-		.MEM_DOUT1(IR),
+		.MEM_DOUT1(ir),
 		.MEM_DOUT2(mem_data),
 		.IO_IN(IOBUS_IN),
 		.IO_WR(IOBUS_WR),
-		.MEM_SIZE(IR[13:12]), 	// ??
-		.MEMSIGN(IR[14]));		// ??
+		.MEM_SIZE(ir[13:12]), 	// ??
+		.MEMSIGN(ir[14]));		// ??
 
 	// IF_ID Pipeline Register
 	IF_ID if_id(	
@@ -137,8 +237,8 @@ module OTTER_MCU (
    OTTER_PL_Decoder CU_DECODER(
    		// Inputs
 		.CU_OPCODE(opcode),
-		.CU_FUNC3(IR[14:12]),
-		.CU_FUNC7(IR[31:25]),
+		.CU_FUNC3(ir[14:12]),
+		.CU_FUNC7(ir[31:25]),
 		.CU_BR_EQ(br_eq), 
 		.CU_BR_LT(br_lt),
 		.CU_BR_LTU(bt_ltu),
@@ -185,9 +285,9 @@ module OTTER_MCU (
 
 // Register File
 	OTTER_registerFile RF(
-		IR[19:15],
-		IR[24:20],
-		IR[11:7],
+		ir[19:15],
+		ir[24:20],
+		ir[11:7],
 		rfIn,
 		regWrite,
 		A,
@@ -271,7 +371,7 @@ module OTTER_MCU (
 	   alu_fun, 
 	   aluAin, 
 	   aluBin, 
-	   aluResult); 
+	   alu_result); 
 // EX_MEM
 	EX_MEM ex_mem(
 		.CLK(),
@@ -334,15 +434,10 @@ module OTTER_MCU (
 		next_pc,
 		csr_reg,
 		mem_data,
-		aluResult,
+		alu_result,
 		wb_sel,
 		rfIn);
 
-// *********************************************************************************
-// * MMIO Stuff
-// *********************************************************************************
-	assign IOBUS_ADDR = aluResult;
-	assign IOBUS_OUT = B;
 
 
 endmodule
