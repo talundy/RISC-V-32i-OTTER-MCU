@@ -119,12 +119,6 @@ module OTTER_MCU(input CLK,
 		jump_pc);
 	
 	assign next_pc = pc + 4;    //PC is byte aligned, memory is word aligned
-    //assign jalr_pc = I_immed + A;
-    //assign branch_pc = pc + {{21{IR[31]}},IR[7],IR[30:25],IR[11:8] ,1'b0};   //word aligned addresses
-    //assign branch_pc = pc + {{20{IR[31]}},IR[7],IR[30:25],IR[11:8],1'b0};   //byte aligned addresses
-	//assign branch_pc = pc + B_immed;
-    //assign jump_pc = pc + {{12{IR[31]}}, IR[19:12], IR[20],IR[30:21],1'b0};
-    //assign jump_pc = pc + J_immed;
 	assign int_pc = 0;
     
     logic br_lt,br_eq,br_ltu;
@@ -145,11 +139,6 @@ module OTTER_MCU(input CLK,
 		S_immed,
 		J_immed,
 		B_immed);
-	
-    // Generate immediates
-    //assign S_immed = {{20{IR[31]}},IR[31:25],IR[11:7]};
-    //assign I_immed = {{20{IR[31]}},IR[31:20]};
-    //assign U_immed = {IR[31:12],{12{1'b0}}};
 
                            
      OTTER_mem_byte #(14) memory  (

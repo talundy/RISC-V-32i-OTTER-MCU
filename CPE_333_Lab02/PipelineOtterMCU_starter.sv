@@ -61,6 +61,7 @@ module OTTER_MCU (
 	end
 
 
+
 // *********************************************************************************
 // * Fetch (Instruction Memory) Stage
 // *********************************************************************************
@@ -108,6 +109,20 @@ module OTTER_MCU (
 		.IO_WR(IOBUS_WR),
 		.MEM_SIZE(IR[13:12]), 	// ??
 		.MEMSIGN(IR[14]));		// ??
+
+	// IF_ID Pipeline Register
+	IF_ID if_id(	
+		.CLK(CLK),
+		.RST(RESET),
+		// Inputs
+		.DOUT2_IF(),
+		.ADDR_IF(),
+		.N_ADDR_IF(),
+		// Outputs
+		.IR_ID(),
+		.ADDR_ID(),
+		.N_ADDR_ID());
+
 
 // *********************************************************************************
 // * Decode (Register File) stage
@@ -178,7 +193,58 @@ module OTTER_MCU (
 		A,
 		B,
 		CLK);
-		
+
+// ID_EX Pipeline Register
+	ID_EX id_ex(
+		.CLK(),
+		.RST(),
+		// Inputs
+		.PC_SOURCE_ID(),
+		.ALU_SRCA_ID(),
+		.ALU_SRCB_ID(),
+		.ALU_FUN_ID(),
+		.RF_WR_SEL_ID(),
+		.PC_WRITE_ID(),
+		.MEM_WRITE_ID(),
+		.REG_WRITE_ID(),
+		.MEM_READ_2_ID(),
+		.RS1_ID(),
+		.RS2_ID(),
+		.RD_ID(),
+		.U_TYPE_ID(),
+		.I_TYPE_ID(),
+		.S_TYPE_ID(),
+		.JAL_ID(),
+		.BRANCH_ID(),
+		.JALR_ID(),
+		.PC_ID(),
+		.PC_N_ID(),
+		.SIZE_ID(),
+		.SIGN_ID(),
+		// Outputs	
+		.PC_SOURCE_EX(),
+		.ALU_SRCA_EX(),
+		.ALU_SRCB_EX(),
+		.ALU_FUN_EX(),
+		.RF_WR_SEL_EX(),
+		.PC_WRITE_EX(),
+		.MEM_WRITE_EX(),
+		.REG_WRITE_EX(),
+		.MEM_READ_2_EX(),
+		.RS1_EX(),
+		.RS2_EX(),
+		.RD_EX(),
+		.U_TYPE_EX(),
+		.I_TYPE_EX(),
+		.S_TYPE_EX(),
+		.JAL_EX(),
+		.BRANCH_EX(),
+		.JALR_EX(),
+		.PC_EX(),
+		.PC_N_EX(),
+		.SIZE_EX(),
+		.SIGN_EX());
+
 // *********************************************************************************
 // * Execute (ALU) Stage
 // *********************************************************************************
@@ -206,10 +272,57 @@ module OTTER_MCU (
 	   aluAin, 
 	   aluBin, 
 	   aluResult); 
-
+// EX_MEM
+	EX_MEM ex_mem(
+		.CLK(),
+		.RST(),
+		// Input
+		.SIZE_EX(),
+		.SIGN_EX(),
+		.RF_WR_SEL_EX(),
+		.REG_WRITE_EX(),
+		.MEM_READ_2_EX(),
+		.MEM_WRITE_EX(),
+		.ALU_RESULT_EX(),
+		.RS2_EX(),
+		.RD_EX(),
+		.PC_N_EX(),
+		// Output
+		.SIZE_MEM(),
+		.SIGN_EX(),
+		.RF_WR_SEL_EX(),
+		.REG_WRITE_EX(),
+		.MEM_READ_2_EX(),
+		.MEM_WRITE_EX(),
+		.ALU_RESULT_EX(),
+		.RS2_EX(),
+		.RD_EX(),
+		.PC_N_EX()
+		);
 // *********************************************************************************
 // * Memory (Data Memory) stage 
 // *********************************************************************************
+
+// MEM_WB Pipeline Register
+	MEM_WB mem_wb(
+		.CLK(),
+		.RST(),
+		// Inputs
+		.DOUT_2_MEM(),
+		.ALU_RESULT_MEM(),
+		.PC_N_MEM(),
+		.REG_WRITE_MEM(),
+		.RF_WR_SEL_MEM(),
+		.RD_MEM(),
+		// Output
+		.DOUT_2_WB(),
+		.ALU_RESULT_WB(),
+		.PC_N_WB(),
+		.REG_WRITE_WB(),
+		.RF_WR_SEL_WB(),
+		.RD_WB()
+		);
+
 
 
 // *********************************************************************************
