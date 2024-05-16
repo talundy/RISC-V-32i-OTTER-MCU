@@ -25,6 +25,14 @@ typedef struct packed {
 	// CONTROL INPUTS
 	logic br_lt, br_eq, br_ltu; // No ID postfix as these don't progress through pipeine
 
+	//****** INSTRUCTION STUFF ********//
+	logic [6:0] opcode;
+	logic [3:0] func3;
+	logic [5:0] func7;
+	//logic [10:0] func12;	//ir[31:20]	
+	logic [4:0] rs1_addr, rs2_addr, rd_addr_ID;	
+	logic [1:0] size_ID;
+	logic sign_ID;
 
 	//****** REGISTER FILE ******//
 	logic [31:0] rs1_ID, rs2_ID;
@@ -33,8 +41,8 @@ typedef struct packed {
 	logic [31:0] U_immed_ID;
 	logic [31:0] I_immed_ID;
 	logic [31:0] S_immed_ID;
-	logic [31:0] B_immed_ID;
-	logic [31:0] J_immed_ID;
+	logic [31:0] B_immed;
+	logic [31:0] J_immed;
 	logic [31:0] jal_ID;
 	logic [31:0] branch_ID;
 	logic [31:0] jalr_ID;
@@ -54,14 +62,7 @@ typedef struct packed {
 		// READ/WRITE
 	logic pcWrite_EX, regWrite_EX, memWrite_EX, memRead1_EX, memRead2_EX;
 	
-	//****** INSTRUCTION STUFF ********//
-	logic [6:0] opcode;
-	logic [3:0] func3;
-	logic [5:0] func7;
-	//logic [10:0] func12;	//ir[31:20]	
-	logic [4:0] rs1_addr, rs2 addr, rd_addr;	
-	logic [1:0] size_EX;
-	logic sign_EX;
+
 
 	//****** BRANCH COND. GEN, IMMEDIATES *******//
 	logic [31:0] U_immed_EX;
@@ -84,6 +85,9 @@ typedef struct packed {
 
 	//****** PASSTHROUGHS *******//
 	logic [31:0] ir_EX, pc_EX, next_pc_EX;
+	logic [4:0] rd_addr_EX;
+	logic [1:0] size_EX;
+	logic sign_EX;
 
 
 // Memory Stage Signals ///////////////////////////////////////
@@ -166,29 +170,29 @@ module OTTER_MCU (
 // * Fetch (Instruction Memory) Stage
 // *********************************************************************************
 
-// FETCH SIGNALS
-	assign next_pc = pc + 4; //byte-aligned
-
+// INTERNAL SIGNALS
+	assign next_pc_IF = pc + 4; //byte-aligned
+	logic pc_value;i			// pc mux to pc
 
 // Program Counter
 	ProgCount PC (
 		.PC_CLK(CLK),		
 		.PC_RST(RESET),	
-		.PC_LD(pcWrite),	// from ID_EX pipeline register
+		.PC_LD(pcWrite_EX),	// from ID_EX pipeline register
 		.PC_DIN(pc_value),	// from PCdatasrc
-		.PC_COUNT(pc));		// output to memory module
+		.PC_COUNT(pc_IF));		// output to memory module
 
 
 
 // PC Multiplexor. 4 normal inputs, 2 interrupt inputs.
     Mult6to1 PCdatasrc (
-		next_pc, 
-		jalr_pc, 
-		branch_pc, 
-		jump_pc,
-		mtvec,
-		mepc,
-		pc_sel,		// select
+		next_pc_IF, 
+		jalr_pc_EX, 
+		branch_pc_EX, 
+		jump_pc_EX,
+		mtvec,		// interrupt stuff
+		mepc,		// interrupt stuff
+		pcSource_EX,		// select
 		pc_value)	// output 
 		
 // INSTRUCTION/DATA MEMORY
@@ -196,15 +200,15 @@ module OTTER_MCU (
 // Instruction Memory is port 1, Data Memory is port 2
 	OTTER_mem_byte #(14) memory(
 		.MEM_CLK(CLK),
-		.MEM_ADDR1(pc),
+		.MEM_ADDR1(pc_IF),
 		.MEM_ADDR2(alu_result),
 		.MEM_DIN2(B),
 		.MEM_WRITE2(memWrite),
 		.MEM_READ1(memRead1),
 		.MEM_READ2(memRead2),
 		.ERR(), 				// ??
-		.MEM_DOUT1(ir),
-		.MEM_DOUT2(mem_data),
+		.MEM_DOUT1(ir_IF),
+		.MEM_DOUT2(dout2_MEM),
 		.IO_IN(IOBUS_IN),
 		.IO_WR(IOBUS_WR),
 		.MEM_SIZE(ir[13:12]), 	// ??
@@ -215,13 +219,13 @@ module OTTER_MCU (
 		.CLK(CLK),
 		.RST(RESET),
 		// Inputs
-		.DOUT2_IF(),
-		.ADDR_IF(),
-		.N_ADDR_IF(),
+		.DOUT2_IF(ir_IF),
+		.ADDR_IF(pc_IF),
+		.N_ADDR_IF(next_pc_IF),
 		// Outputs
-		.IR_ID(),
-		.ADDR_ID(),
-		.N_ADDR_ID());
+		.IR_ID(ir_ID),
+		.ADDR_ID(pc_ID),
+		.N_ADDR_ID(next_pc_ID));
 
 
 // *********************************************************************************
@@ -230,174 +234,186 @@ module OTTER_MCU (
    
 // Decode Stage Connections
 	logic br_lt, br_eq, br_ltu;
-	wire [31:0], U_immed, I_immed, S_immed, J_immed, B_immed;
+	logic rfIn;
+	assign opcode = ir[6:0];
+	assign func3 = ir[14:12];
+	assign func7 = ir[31:25];
+	//assign func12 = ir[31:20];
+	assign rs1_addr = ir[19:15];
+	assign rs2_addr = ir[24:20];
+	assign rd_addr_ID = ir[11:7];
+   	assign size_ID = ir[13:12];
+	assign sign_ID = ir[14];
 
 
 // Decoder Unit. This unit will be modified to account for pipelining. 
    OTTER_PL_Decoder CU_DECODER(
    		// Inputs
 		.CU_OPCODE(opcode),
-		.CU_FUNC3(ir[14:12]),
-		.CU_FUNC7(ir[31:25]),
+		.CU_FUNC3(func3),
+		.CU_FUNC7(func7),
 		.CU_BR_EQ(br_eq), 
 		.CU_BR_LT(br_lt),
 		.CU_BR_LTU(bt_ltu),
 		.intTaken(intTaken),
 		// Outputs
-		.CU_PCSOURCE(pc_sel),
-		.CU_ALU_SRCA(opA_sel),
-		.CU_ALU_SRCB(opB_sel),
-		.CU_ALU_FUN(alu_fun),
-		.CU_RF_WR_SEL(wb_sel),
-		.PC_WRITE(),
-		.REG_WRITE(),
-		.MEM_WRITE(),
-		.MEM_READ_1(),		// Instruction Memory
-		.MEM_READ_2());		// Data Memory
+		.CU_PCSOURCE(pc_source_ID),
+		.CU_ALU_SRCA(alu_srcA_ID),
+		.CU_ALU_SRCB(alu_srcB_ID),
+		.CU_ALU_FUN(alu_fun_ID),
+		.CU_RF_WR_SEL(rf_wr_sel_ID),
+		.PC_WRITE(pcWrite_ID),
+		.REG_WRITE(regWrite_ID),
+		.MEM_WRITE(memWrite_ID),
+		.MEM_READ_1(memRead1_ID),		// Instruction Memory
+		.MEM_READ_2(memRead2_ID));		// Data Memory
 
 // Branch Address Generator
 	BrAddrGen BRANCH_ADDR_GEN(
 		J_immed,
 		B_immed,
-		I_immed,
-		pc,
-		A,
-		jalr_pc,
-		branch_pc,
-		jump_pc);
+		I_immed_ID,
+		pc_ID,
+		rs1_ID,
+		jalr_ID,
+		branch_ID,
+		jump_ID);
 
 // Branch Condition Generator
 	brCondGen BRANCH_COND_GEN(
-		A,
-		B,
+		rs1_ID,
+		rs2_ID,
 		br_eq,
 		br_lt,
 		br_ltu);
 
 // Immediate Generator
 	ImmedGen IMMED_GEN(
-		IR,
-		U_immed,
-		I_immed,
-		S_immed,
+		ir,
+		U_immed_ID,
+		I_immed_ID,
+		S_immed_ID,
 		J_immed,
 		B_immed);
 
 // Register File
 	OTTER_registerFile RF(
-		ir[19:15],
-		ir[24:20],
-		ir[11:7],
+		rs1_addr,
+		rs2_addr,
+		rd_addr_WB,
 		rfIn,
-		regWrite,
-		A,
-		B,
+		regWrite_WB,
+		rs1_ID,
+		rs2_ID),
 		CLK);
 
 // ID_EX Pipeline Register
 	ID_EX id_ex(
-		.CLK(),
-		.RST(),
+		.CLK(CLK),
+		.RST(RESET),
 		// Inputs
-		.PC_SOURCE_ID(),
-		.ALU_SRCA_ID(),
-		.ALU_SRCB_ID(),
-		.ALU_FUN_ID(),
-		.RF_WR_SEL_ID(),
-		.PC_WRITE_ID(),
-		.MEM_WRITE_ID(),
-		.REG_WRITE_ID(),
-		.MEM_READ_2_ID(),
-		.RS1_ID(),
-		.RS2_ID(),
-		.RD_ID(),
-		.U_TYPE_ID(),
-		.I_TYPE_ID(),
-		.S_TYPE_ID(),
-		.JAL_ID(),
-		.BRANCH_ID(),
-		.JALR_ID(),
-		.PC_ID(),
-		.PC_N_ID(),
-		.SIZE_ID(),
-		.SIGN_ID(),
+		.PC_SOURCE_ID(pcSource_ID),
+		.ALU_SRCA_ID(alu_srcA_ID),
+		.ALU_SRCB_ID(alu_srcB_ID),
+		.ALU_FUN_ID(alu_fun_ID),
+		.RF_WR_SEL_ID(rw_wr_sel_ID),
+		.PC_WRITE_ID(pcWrite_ID),
+		.MEM_WRITE_ID(memWrite_ID),
+		.REG_WRITE_ID(regWrite_ID),
+		.MEM_READ_2_ID(memRead2_ID), //memRead1 tied high for now
+		.RS1_ID(rs1_ID),
+		.RS2_ID(rs2_ID),
+		.RD_ID(rd_addr_ID),
+		.U_TYPE_ID(U_immed_ID),
+		.I_TYPE_ID(I_immed_ID),
+		.S_TYPE_ID(S_immed_ID),
+		.JAL_ID(jal_ID),
+		.BRANCH_ID(branch_ID),
+		.JALR_ID(jalr_ID),
+		.PC_ID(pc_ID),
+		.PC_N_ID(next_pc_ID),
+		.SIZE_ID(size_ID),
+		.SIGN_ID(sign_ID),
 		// Outputs	
-		.PC_SOURCE_EX(),
-		.ALU_SRCA_EX(),
-		.ALU_SRCB_EX(),
-		.ALU_FUN_EX(),
-		.RF_WR_SEL_EX(),
-		.PC_WRITE_EX(),
-		.MEM_WRITE_EX(),
-		.REG_WRITE_EX(),
-		.MEM_READ_2_EX(),
-		.RS1_EX(),
-		.RS2_EX(),
-		.RD_EX(),
-		.U_TYPE_EX(),
-		.I_TYPE_EX(),
-		.S_TYPE_EX(),
-		.JAL_EX(),
-		.BRANCH_EX(),
-		.JALR_EX(),
-		.PC_EX(),
-		.PC_N_EX(),
-		.SIZE_EX(),
-		.SIGN_EX());
+		.PC_SOURCE_EX(pcSource_EX),
+		.ALU_SRCA_EX(alu_srcA_EX),
+		.ALU_SRCB_EX(alu_srcB_EX),
+		.ALU_FUN_EX(alu_fun_EX),
+		.RF_WR_SEL_EX(rf_wr_sel_EX),
+		.PC_WRITE_EX(pcWrite_EX),
+		.MEM_WRITE_EX(memWrite_EX),
+		.REG_WRITE_EX(regWrite_EX),
+		.MEM_READ_2_EX(memRead1_EX), //memRead1 tied high for now
+		.RS1_EX(rs1_EX),
+		.RS2_EX(rs2_EX),
+		.RD_EX(rd_addr_EX),
+		.U_TYPE_EX(U_immed_EX),
+		.I_TYPE_EX(I_immed_EX),
+		.S_TYPE_EX(S_immed_EX),
+		.JAL_EX(jal_EX),
+		.BRANCH_EX(branch_EX),
+		.JALR_EX(jalr_EX),
+		.PC_EX(pc_EX),
+		.PC_N_EX(next_pc_EX),
+		.SIZE_EX(size_EX),
+		.SIGN_EX(sign_EX));
 
 // *********************************************************************************
 // * Execute (ALU) Stage
 // *********************************************************************************
+	// Execute stage signals
+	logic aluAin, aluBin;
 
 // ALU Source A Multiplexor
 	Mult2to1 ALUAinput(
-		A,				// RS1. From reg file.   
-		U_immed, 		// From IMMED_GEN.
-		opA_sel, 		// From decoder. 
+		rs1_EX,				// RS1. From reg file.   
+		U_immed_EX, 		// From IMMED_GEN.
+		alu_srcA_EX, 		// From decoder. 
 		aluAin);		// To ALU.
 
 // ALU Source B Multiplexor
 	Mult4to1 ALUBinput(
-		B,				//RS2. From reg file.
-		I_immed,		// From IMMED_GEN.
-		S_immed,		// From IMMED_GEN. 
-		pc,				// Piped from PC. 
-		opB_sel,		// From decoder.
+		rs2_EX,				//RS2. From reg file.
+		I_immed_EX,		// From IMMED_GEN.
+		S_immed_EX,		// From IMMED_GEN. 
+		pc_EX,				// Piped from PC. 
+		alu_srcB_EX,		// From decoder.
 		aluBin);		// To ALU.
 
 
 // RISC-V ALU
    OTTER_ALU ALU(
-	   alu_fun, 
+	   alu_fun_EX, 
 	   aluAin, 
 	   aluBin, 
-	   alu_result); 
-// EX_MEM
+	   alu_result_EX); 
+
+// EX_MEM PIPELINE REGISTER
 	EX_MEM ex_mem(
-		.CLK(),
-		.RST(),
+		.CLK(CLK),
+		.RST(RESET),
 		// Input
-		.SIZE_EX(),
-		.SIGN_EX(),
-		.RF_WR_SEL_EX(),
-		.REG_WRITE_EX(),
-		.MEM_READ_2_EX(),
-		.MEM_WRITE_EX(),
-		.ALU_RESULT_EX(),
-		.RS2_EX(),
-		.RD_EX(),
-		.PC_N_EX(),
+		.SIZE_EX(size_EX),
+		.SIGN_EX(sign_EX),
+		.RF_WR_SEL_EX(rf_wr_sel_EX),
+		.REG_WRITE_EX(regWrite_EX),
+		.MEM_READ_2_EX(memRead2_EX), //memRead1 tied high for now
+		.MEM_WRITE_EX(memWrite_EX),
+		.ALU_RESULT_EX(alu_result_EX),
+		.RS2_EX(rs2_EX),
+		.RD_EX(rd_addr_EX),
+		.PC_N_EX(next_pc_EX),
 		// Output
-		.SIZE_MEM(),
-		.SIGN_EX(),
-		.RF_WR_SEL_EX(),
-		.REG_WRITE_EX(),
-		.MEM_READ_2_EX(),
-		.MEM_WRITE_EX(),
-		.ALU_RESULT_EX(),
-		.RS2_EX(),
-		.RD_EX(),
-		.PC_N_EX()
+		.SIZE_MEM(size_MEM),
+		.SIGN_EX(sign_MEM),
+		.RF_WR_SEL_EX(rf_wr_sel_MEM),
+		.REG_WRITE_EX(regWrite_MEM),
+		.MEM_READ_2_EX(memRead2_MEM),
+		.MEM_WRITE_EX(memWrite_MEM),
+		.ALU_RESULT_EX(alu_result_MEM),
+		.RS2_EX(rs2_MEM),
+		.RD_EX(rd_addr_MEM),
+		.PC_N_EX(next_pc_MEM)
 		);
 // *********************************************************************************
 // * Memory (Data Memory) stage 
@@ -405,22 +421,22 @@ module OTTER_MCU (
 
 // MEM_WB Pipeline Register
 	MEM_WB mem_wb(
-		.CLK(),
-		.RST(),
+		.CLK(CLK),
+		.RST(RESET),
 		// Inputs
-		.DOUT_2_MEM(),
+		.DOUT_2_MEM(dout2_MEM),
 		.ALU_RESULT_MEM(),
-		.PC_N_MEM(),
-		.REG_WRITE_MEM(),
-		.RF_WR_SEL_MEM(),
-		.RD_MEM(),
+		.PC_N_MEM(next_pc_MEM),
+		.REG_WRITE_MEM(regWrite_MEM),
+		.RF_WR_SEL_MEM(rf_wr_sel_MEM),
+		.RD_MEM(rd_addr_MEM),
 		// Output
-		.DOUT_2_WB(),
-		.ALU_RESULT_WB(),
-		.PC_N_WB(),
-		.REG_WRITE_WB(),
-		.RF_WR_SEL_WB(),
-		.RD_WB()
+		.DOUT_2_WB(dout2_WB),
+		.ALU_RESULT_WB(alu_result_WB),
+		.PC_N_WB(next_pc_WB),
+		.REG_WRITE_WB(regWrite_WB),
+		.RF_WR_SEL_WB(rf_wr_sel_WB),
+		.RD_WB(rd_addr_WB)
 		);
 
 
@@ -431,11 +447,11 @@ module OTTER_MCU (
     
 // Register Input Multiplexor
 	Mutlt4to1 regWriteback(
-		next_pc,
+		next_pc_WB,
 		csr_reg,
-		mem_data,
-		alu_result,
-		wb_sel,
+		dout2_WB,
+		alu_result_WB,
+		rf_wr_sel_WB,
 		rfIn);
 
 
