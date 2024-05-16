@@ -43,39 +43,39 @@ module ID_EX(
 
 //*************** OUTPUT SIGNALS ****************//
 	// Decoder Control Signals
-	input logic [1:0] PC_SOURCE_EX, 		// EXECUTE SIGNAL
-	input logic ALU_SRCA_EX,				// EXECUTE SIGNAL
-	input logic [1:0] ALU_SRCB_EX,			// EXECUTE SIGNAL
-	input logic [3:0] ALU_FUN_EX,			// EXECUTE SIGNAL
-	input logic [1:0] RF_WR_SEL_EX,
+	output logic [1:0] PC_SOURCE_EX, 		// EXECUTE SIGNAL
+	output logic ALU_SRCA_EX,				// EXECUTE SIGNAL
+	output logic [1:0] ALU_SRCB_EX,			// EXECUTE SIGNAL
+	output logic [3:0] ALU_FUN_EX,			// EXECUTE SIGNAL
+	output logic [1:0] RF_WR_SEL_EX,
 	//..// Read/Write Signals
-	input logic PC_WRITE_EX,				// EXECUTE SIGNAL
-	input logic MEM_WRITE_EX,
-	input logic REG_WRITE_EX,
-	input logic MEM_READ_2_EX,
+	output logic PC_WRITE_EX,				// EXECUTE SIGNAL
+	output logic MEM_WRITE_EX,
+	output logic REG_WRITE_EX,
+	output logic MEM_READ_2_EX,
 	
 	// Register Signals
-	input logic [31:0] RS1_EX,				// EXECUTE SIGNAL
-	input logic [31:0] RS2_EX,				// EXECUTE SIGNAL (NON-EXCLUSIVE)
-	input logic [31:0] RD_EX,
+	output logic [31:0] RS1_EX,				// EXECUTE SIGNAL
+	output logic [31:0] RS2_EX,				// EXECUTE SIGNAL (NON-EXCLUSIVE)
+	output logic [31:0] RD_EX,
 	
 	// Immediate Signals
-	input logic [31:0] U_TYPE_EX,			// EXECUTE SIGNAL
-	input logic [31:0] I_TYPE_EX,			// EXECUTE SIGNAL
-	input logic [31:0] S_TYPE_EX,			// EXECUTE SIGNAL
+	output logic [31:0] U_TYPE_EX,			// EXECUTE SIGNAL
+	output logic [31:0] I_TYPE_EX,			// EXECUTE SIGNAL
+	output logic [31:0] S_TYPE_EX,			// EXECUTE SIGNAL
 
 	// Branch Address Signals
-	input logic [31:0] JAL_EX,				// EXECUTE SIGNAL
-	input logic [31:0] BRANCH_EX,			// EXECUTE SIGNAL
-	input logic [31:0] JALR_EX,				// EXECUTE SIGNAL
+	output logic [31:0] JAL_EX,				// EXECUTE SIGNAL
+	output logic [31:0] BRANCH_EX,			// EXECUTE SIGNAL
+	output logic [31:0] JALR_EX,				// EXECUTE SIGNAL
 	
 	// PC Signals
-	input logic [31:0] PC_EX,				// EXECUTE SIGNAL
-	input logic [31:0] PC_N_EX,
+	output logic [31:0] PC_EX,				// EXECUTE SIGNAL
+	output logic [31:0] PC_N_EX,
 
 	// Memory Signals
-	input logic [1:0] SIZE_EX,
-	input logic SIGN_EX
+	output logic [1:0] SIZE_EX,
+	output logic SIGN_EX
 
 	);
 

@@ -3,5 +3,6 @@
 # Ignore everything except for what we want to track
 *
 !OTTER-multicycle-1-cycle-memory/
+!CPE*
 !CPE*/
 !"RISC-V 32i OTTER/RISC-V 32i OTTER.srcs/sources_1/new/"

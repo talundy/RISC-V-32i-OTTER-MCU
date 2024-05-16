@@ -211,8 +211,8 @@ module OTTER_MCU (
 		.MEM_DOUT2(dout2_MEM),
 		.IO_IN(IOBUS_IN),
 		.IO_WR(IOBUS_WR),
-		.MEM_SIZE(ir[13:12]), 	// ??
-		.MEMSIGN(ir[14]));		// ??
+		.MEM_SIZE(ir_ID[13:12]), 	// ??
+		.MEM_SIGN(ir_ID[14]));		// ??
 
 	// IF_ID Pipeline Register
 	IF_ID if_id(	
@@ -406,15 +406,15 @@ module OTTER_MCU (
 		.PC_N_EX(next_pc_EX),
 		// Output
 		.SIZE_MEM(size_MEM),
-		.SIGN_EX(sign_MEM),
-		.RF_WR_SEL_EX(rf_wr_sel_MEM),
-		.REG_WRITE_EX(regWrite_MEM),
-		.MEM_READ_2_EX(memRead2_MEM),
-		.MEM_WRITE_EX(memWrite_MEM),
-		.ALU_RESULT_EX(alu_result_MEM),
-		.RS2_EX(rs2_MEM),
-		.RD_EX(rd_addr_MEM),
-		.PC_N_EX(next_pc_MEM)
+		.SIGN_MEM(sign_MEM),
+		.RF_WR_SEL_MEM(rf_wr_sel_MEM),
+		.REG_WRITE_MEM(regWrite_MEM),
+		.MEM_READ_2_MEM(memRead2_MEM),
+		.MEM_WRITE_MEM(memWrite_MEM),
+		.ALU_RESULT_MEM(alu_result_MEM),
+		.RS2_MEM(rs2_MEM),
+		.RD_MEM(rd_addr_MEM),
+		.PC_N_MEM(next_pc_MEM)
 		);
 // *********************************************************************************
 // * Memory (Data Memory) stage 
