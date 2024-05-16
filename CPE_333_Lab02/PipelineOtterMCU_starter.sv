@@ -48,7 +48,8 @@ typedef struct packed {
 	logic [31:0] jalr_ID;
 	
 	//****** PASSTHROUGHS *******//
-	logic [31:0] ir_ID, pc_ID, next_pc_ID;
+	logic [31:0] pc_ID, next_pc_ID;
+	// logic [31:0] ir_ID;
 
 
 // Execute Stage Signals ///////////////////////////////////////
@@ -70,15 +71,13 @@ typedef struct packed {
 	logic [31:0] S_immed_EX;
 	logic [31:0] B_immed_EX;
 	logic [31:0] J_immed_EX;
+	// jump/branch
 	logic [31:0] jal_EX;
 	logic [31:0] branch_EX;
 	logic [31:0] jalr_EX;
 
 	//****** INSTRUCTION STUFF ********//
 	logic [31:0] rs1_EX, rs2_EX;
-
-   	//****** JUMP/BRANCH ******//
-	logic[31:0] jal_EX, branch_EX, jalr_EX;
    	
 	//****** ALU ******//
 	logic [31:0] alu_result_EX;
@@ -110,7 +109,7 @@ typedef struct packed {
 	logic [31:0] next_pc_WB;
 	logic regWrite_WB;
 	logic [1:0] rf_wr_sel_WB;
-	logic [4:0] rd_addr_MEM;
+	logic [4:0] rd_addr_WB;
 
 // Interrupt/Reset/Ind. Signals ///////////////////////////////////////
 	logic intTaken;
@@ -134,7 +133,7 @@ module OTTER_MCU (
 // * MMIO Stuff
 // *********************************************************************************
 	assign IOBUS_ADDR = alu_result;
-	assign IOBUS_OUT = B;
+	assign IOBUS_OUT = rs2_ID;
 
 
 
@@ -147,7 +146,7 @@ module OTTER_MCU (
 		.clk(CLK),
 		.rst(RESET),
 		.intTaken(intTaken),
-		.addr(ir[31:20]),
+		.addr(ir_ID[31:20]),
 		.next_pc(pc),
 		.wd(alu_result),
 		.wr_en(csrWrite),
@@ -156,13 +155,14 @@ module OTTER_MCU (
 		.mtvec(mtvec),
 		.mie(mie));
    
-	always_ff @ (posedge CLK)
-	begin
-		if(INTR && mie)
-			prev_INT = 1'b1;
-		if(intCLK || RESET)
-			prev_INT = 1'b0;
-	end
+    
+	//always_ff @ (posedge CLK)
+	//begin
+	//	if(INTR && mie)
+	//		prev_INT = 1'b1;
+	//	if(intCLK || RESET)
+	//		prev_INT = 1'b0;
+	//end
 
 
 
@@ -172,7 +172,7 @@ module OTTER_MCU (
 
 // INTERNAL SIGNALS
 	assign next_pc_IF = pc + 4; //byte-aligned
-	logic pc_value;i			// pc mux to pc
+	logic pc_value;			// pc mux to pc
 
 // Program Counter
 	ProgCount PC (
@@ -193,7 +193,7 @@ module OTTER_MCU (
 		mtvec,		// interrupt stuff
 		mepc,		// interrupt stuff
 		pcSource_EX,		// select
-		pc_value)	// output 
+		pc_value);	// output 
 		
 // INSTRUCTION/DATA MEMORY
 // Memory module is declared here, but also used in Memory stage. 
@@ -231,19 +231,20 @@ module OTTER_MCU (
 // *********************************************************************************
 // * Decode (Register File) stage
 // *********************************************************************************
+   wire [31:0] ir_ID;
    
 // Decode Stage Connections
 	logic br_lt, br_eq, br_ltu;
 	logic rfIn;
-	assign opcode = ir[6:0];
-	assign func3 = ir[14:12];
-	assign func7 = ir[31:25];
+	assign opcode = ir_ID[6:0];
+	assign func3 = ir_ID[14:12];
+	assign func7 = ir_ID[31:25];
 	//assign func12 = ir[31:20];
-	assign rs1_addr = ir[19:15];
-	assign rs2_addr = ir[24:20];
-	assign rd_addr_ID = ir[11:7];
-   	assign size_ID = ir[13:12];
-	assign sign_ID = ir[14];
+	assign rs1_addr = ir_ID[19:15];
+	assign rs2_addr = ir_ID[24:20];
+	assign rd_addr_ID = ir_ID[11:7];
+   	assign size_ID = ir_ID[13:12];
+	assign sign_ID = ir_ID[14];
 
 
 // Decoder Unit. This unit will be modified to account for pipelining. 
@@ -304,7 +305,7 @@ module OTTER_MCU (
 		rfIn,
 		regWrite_WB,
 		rs1_ID,
-		rs2_ID),
+		rs2_ID,
 		CLK);
 
 // ID_EX Pipeline Register
@@ -446,7 +447,7 @@ module OTTER_MCU (
 // *********************************************************************************
     
 // Register Input Multiplexor
-	Mutlt4to1 regWriteback(
+	Mult4to1 regWriteback(
 		next_pc_WB,
 		csr_reg,
 		dout2_WB,

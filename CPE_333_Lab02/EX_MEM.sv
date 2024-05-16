@@ -17,7 +17,6 @@ module EX_MEM(
 	input logic [31:0] RS2_EX,				// Memory Signal
 	input logic [31:0] RD_EX,
 	input logic [31:0] PC_N_EX,
-	
 	//*************** OUTPUT***************//
 	// Control signals
 	output logic [1:0] SIZE_MEM,				// Memory Signal
@@ -31,7 +30,7 @@ module EX_MEM(
 	// Other
 	output logic [31:0] RS2_MEM,				// Memory Signal
 	output logic [31:0] RD_MEM,
-	output logic [31:0] PC_N_MEM,
+	output logic [31:0] PC_N_MEM
 
 	);
 
@@ -65,7 +64,7 @@ module EX_MEM(
 		end else 
 		begin
 			EX_SIZE_MEM <= SIZE_EX;
-			EX_SIGN_MEM <= SIGN_EX
+			EX_SIGN_MEM <= SIGN_EX;
 			EX_RF_WR_SEL_MEM <= RF_WR_SEL_EX;
 			EX_REG_WRITE_MEM <= REG_WRITE_EX;
 			EX_MEM_READ_2_MEM <= MEM_READ_2_EX;
@@ -80,6 +79,8 @@ module EX_MEM(
 	// Clear outputs on reset, else write output
 	always_ff @ (posedge CLK)
 	begin
+	   if (RST)
+	   begin
 		SIZE_MEM <= 0;
 		SIGN_MEM <= 0;
 		RF_WR_SEL_MEM <= 0;
@@ -102,6 +103,7 @@ module EX_MEM(
 		RS2_MEM	<= EX_RS2_MEM; 
 		RD_MEM <= EX_RD_MEM;
 		PC_N_MEM <= EX_PC_N_MEM;
+	end
 	end
 
 endmodule

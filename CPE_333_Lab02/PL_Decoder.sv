@@ -34,7 +34,7 @@ module OTTER_PL_Decoder(
     output logic [1:0] CU_ALU_SRCB,
     output logic [3:0] CU_ALU_FUN,
     output logic [1:0] CU_RF_WR_SEL,   
-    output logic [3:0] CU_PCSOURCE
+    output logic [3:0] CU_PCSOURCE,
 	output logic PC_WRITE,
 	output logic REG_WRITE,
 	output logic MEM_WRITE,

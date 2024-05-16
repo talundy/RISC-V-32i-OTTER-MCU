@@ -76,33 +76,57 @@ module OTTER_Wrapper(
    assign s_interrupt = keyboard_int | btn_int;
    
     // Declare OTTER_CPU ///////////////////////////////////////////////////////
-   OTTER_MCU MCU (.RESET(s_reset),.INTR(s_interrupt), .CLK(sclk), 
-                   .IOBUS_OUT(IOBUS_out),.IOBUS_IN(IOBUS_in),.IOBUS_ADDR(IOBUS_addr),.IOBUS_WR(IOBUS_wr));
+   OTTER_MCU MCU (
+	   .RESET(s_reset),
+	   .INTR(s_interrupt), 
+	   .CLK(sclk), 
+       .IOBUS_OUT(IOBUS_out),
+	   .IOBUS_IN(IOBUS_in),
+	   .IOBUS_ADDR(IOBUS_addr),
+	   .IOBUS_WR(IOBUS_wr));
 
    // Declare Seven Segment Display /////////////////////////////////////////
-   SevSegDisp SSG_DISP (.DATA_IN(r_SSEG), .CLK(CLK), .MODE(1'b0),
-                       .CATHODES(CATHODES), .ANODES(ANODES));
+   SevSegDisp SSG_DISP (
+	   .DATA_IN(r_SSEG), 
+	   .CLK(CLK), 
+	   .MODE(1'b0),
+   	   .CATHODES(CATHODES), 
+	   .ANODES(ANODES));
    
    // Declare Debouncer One Shot  ///////////////////////////////////////////
-   debounce_one_shot DB(.CLK(sclk), .BTN(BTNL), .DB_BTN(btn_int));
+   debounce_one_shot DB(
+	   .CLK(sclk), 
+	   .BTN(BTNL), 
+	   .DB_BTN(btn_int));
    
    
    //wire vgaCLK;
    //clk_wiz_1  pll(.clk_out1(vgaCLK), .reset(s_reset),.locked(),.clk_in1(CLK)); 
 
    // Declare VGA Frame Buffer //////////////////////////////////////////////
-   vga_fb_driver VGA(.CLK(sclk), .WA(r_vga_wa), .WD(r_vga_wd),
-                       .WE(r_vga_we), .RD(r_vga_rd), .ROUT(VGA_RGB[7:5]),
-                       .GOUT(VGA_RGB[4:2]), .BOUT(VGA_RGB[1:0]),
-                       .HS(VGA_HS), .VS(VGA_VS)); //.clk_vga(vgaCLK));
+   vga_fb_driver VGA(
+	   .CLK(sclk), 
+	   .WA(r_vga_wa), 
+	   .WD(r_vga_wd),
+       .WE(r_vga_we), 
+	   .RD(r_vga_rd), 
+	   .ROUT(VGA_RGB[7:5]),
+       .GOUT(VGA_RGB[4:2]), 
+	   .BOUT(VGA_RGB[1:0]),
+       .HS(VGA_HS), 
+	   .VS(VGA_VS)); //.clk_vga(vgaCLK));
   
   // (Don't know what this is, removing)                                         
   // Declare UART Driver Module ////////////////////////////////////////////
   // UART uart_driver(.CLK(CLK), .RST(s_reset),.start(uart_start),.data(uart_data),.Tx(Tx),.ready(uart_ready));
   
  // Declare Keyboard Driver //////////////////////////////////////////////
-    KeyboardDriver KEYBD (.CLK(CLK), .PS2DATA(PS2Data), .PS2CLK(PS2Clk),
-                          .INTRPT(keyboard_int), .SCANCODE(s_scancode)); 
+    KeyboardDriver KEYBD (
+		.CLK(CLK), 
+		.PS2DATA(PS2Data), 
+		.PS2CLK(PS2Clk),
+        .INTRPT(keyboard_int), 
+		.SCANCODE(s_scancode)); 
                            
    // Clock Divider to create 50 MHz Clock /////////////////////////////////
    always_ff @(posedge CLK) begin

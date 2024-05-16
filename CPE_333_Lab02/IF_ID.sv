@@ -7,8 +7,8 @@ module IF_ID(
 	input logic [31:0] ADDR_IF,			// PC
 	input logic [31:0] N_ADDR_IF,		// PC + 4
 	output logic [31:0] IR_ID,
-   	output logic [31:0] ADDR_ID	
-	output logic [31:0] N_ADDR_ID,
+   	output logic [31:0] ADDR_ID,	
+	output logic [31:0] N_ADDR_ID
 	);
 
 	logic [31:0] IF_DOUT2_ID, IF_ADDR_ID, IF_N_ADDR_ID;
