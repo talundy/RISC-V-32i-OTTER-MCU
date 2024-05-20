@@ -187,9 +187,9 @@ module OTTER_MCU (
 // PC Multiplexor. 4 normal inputs, 2 interrupt inputs.
     Mult6to1 PCdatasrc (
 		next_pc_IF, 
-		jalr_pc_EX, 
-		branch_pc_EX, 
-		jump_pc_EX,
+		jalr_EX, 
+		branch_EX, 
+		jal_EX,
 		mtvec,		// interrupt stuff
 		mepc,		// interrupt stuff
 		pcSource_EX,		// select
@@ -201,18 +201,18 @@ module OTTER_MCU (
 	OTTER_mem_byte #(14) memory(
 		.MEM_CLK(CLK),
 		.MEM_ADDR1(pc_IF),
-		.MEM_ADDR2(alu_result),
-		.MEM_DIN2(B),
-		.MEM_WRITE2(memWrite),
+		.MEM_ADDR2(alu_result_MEM),
+		.MEM_DIN2(rs2_MEM),
+		.MEM_WRITE2(memWrite_MEM),
 		.MEM_READ1(memRead1),
-		.MEM_READ2(memRead2),
+		.MEM_READ2(memRead2_MEM),
 		.ERR(), 				// ??
 		.MEM_DOUT1(ir_IF),
 		.MEM_DOUT2(dout2_MEM),
 		.IO_IN(IOBUS_IN),
 		.IO_WR(IOBUS_WR),
-		.MEM_SIZE(ir_ID[13:12]), 	// ??
-		.MEM_SIGN(ir_ID[14]));		// ??
+		.MEM_SIZE(size_MEM), 	// ??
+		.MEM_SIGN(sign_MEM));		// ??
 
 	// IF_ID Pipeline Register
 	IF_ID if_id(	
@@ -255,7 +255,7 @@ module OTTER_MCU (
 		.CU_FUNC7(func7),
 		.CU_BR_EQ(br_eq), 
 		.CU_BR_LT(br_lt),
-		.CU_BR_LTU(bt_ltu),
+		.CU_BR_LTU(br_ltu),
 		.intTaken(intTaken),
 		// Outputs
 		.CU_PCSOURCE(pc_source_ID),
@@ -278,7 +278,7 @@ module OTTER_MCU (
 		rs1_ID,
 		jalr_ID,
 		branch_ID,
-		jump_ID);
+		jal_ID);
 
 // Branch Condition Generator
 	brCondGen BRANCH_COND_GEN(
@@ -344,7 +344,7 @@ module OTTER_MCU (
 		.PC_WRITE_EX(pcWrite_EX),
 		.MEM_WRITE_EX(memWrite_EX),
 		.REG_WRITE_EX(regWrite_EX),
-		.MEM_READ_2_EX(memRead1_EX), //memRead1 tied high for now
+		.MEM_READ_2_EX(memRead2_EX), //memRead1 tied high for now
 		.RS1_EX(rs1_EX),
 		.RS2_EX(rs2_EX),
 		.RD_EX(rd_addr_EX),
@@ -426,7 +426,7 @@ module OTTER_MCU (
 		.RST(RESET),
 		// Inputs
 		.DOUT_2_MEM(dout2_MEM),
-		.ALU_RESULT_MEM(),
+		.ALU_RESULT_MEM(alu_result_MEM),
 		.PC_N_MEM(next_pc_MEM),
 		.REG_WRITE_MEM(regWrite_MEM),
 		.RF_WR_SEL_MEM(rf_wr_sel_MEM),

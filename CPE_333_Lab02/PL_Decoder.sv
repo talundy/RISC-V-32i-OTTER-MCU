@@ -133,7 +133,43 @@ module OTTER_PL_Decoder(
                     CU_PCSOURCE=3'b100;   
         end
          
-        
+//////// PIPELINE SIGNALS ///////////////////////////////////////////////	
+		// PCWrite (driven high on B-type, jal, jalr, & mret)
+		
+		// regWrite (driven high on U-type, I-type, R-type, jal, & csrrw)
+		always_comb begin
+			case(CU_OPCODE)
+				LUI: REG_WRITE = 1;
+				AUIPC: REG_WRITE = 1;
+				OP_IMM: REG_WRITE = 1;
+				OP: REG_WRITE = 1; // R-type
+				JAL: REG_WRITE = 1;
+				SYSTEM: REG_WRITE = 1; // csrrw
+				default: REG_WRITE = 0;
+			endcase
+		end
+
+		// memWrite(2-DataMemory) (driven high on S-type)
+		always_comb begin
+			case(CU_OPCODE)
+				STORE: MEM_WRITE = 1;
+				default: MEM_WRITE = 0;
+			endcase
+		end	
+
+		// memRead1 (Ins. mem.) (driven high for no hazards))
+		MEM_READ_1 = 1;	
+
+		// memRead2 (Data mem.) (driven high for load instrutions)
+		always_comb begin
+			case(CU_OPCODE)
+				LOAD: MEM_READ_2 = 1;
+				default: MEM_READ_2 = 0;
+			endcase
+		end
+//////// END OF PIPELINE-ADDED DECODER SIGNALS /////////////////////////////
+
+
        assign CU_ALU_SRCA = (CU_OPCODE==LUI || CU_OPCODE==AUIPC) ? 1 : 0;
                 
 
