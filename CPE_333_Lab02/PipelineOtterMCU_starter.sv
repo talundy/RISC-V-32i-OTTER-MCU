@@ -9,7 +9,7 @@ typedef struct packed {
 // Fetch Stage Signals ///////////////////////////////////////
 	logic [31:0] ir_IF;
 	logic [31:0] pc_IF;
-	logic [31:0] next_pc_IF;
+	//logic [31:0] next_pc_IF;
 
 // Decode Stage Signals ///////////////////////////////////////
    	
@@ -171,7 +171,11 @@ module OTTER_MCU (
 // *********************************************************************************
 
 // INTERNAL SIGNALS
-	assign next_pc_IF = pc + 4; //byte-aligned
+
+	logic [31:0] next_pc_IF;
+	
+	assign next_pc_IF = pc_IF + 4; //byte-aligned
+	
 	logic pc_value;			// pc mux to pc
 
 // Program Counter
@@ -256,9 +260,10 @@ module OTTER_MCU (
 		.CU_BR_EQ(br_eq), 
 		.CU_BR_LT(br_lt),
 		.CU_BR_LTU(br_ltu),
+		.RST(RESET),
 		.intTaken(intTaken),
 		// Outputs
-		.CU_PCSOURCE(pc_source_ID),
+		.CU_PCSOURCE(pcSource_ID),
 		.CU_ALU_SRCA(alu_srcA_ID),
 		.CU_ALU_SRCB(alu_srcB_ID),
 		.CU_ALU_FUN(alu_fun_ID),

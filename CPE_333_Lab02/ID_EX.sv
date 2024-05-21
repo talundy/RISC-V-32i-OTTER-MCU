@@ -168,9 +168,9 @@ module ID_EX(
 			ALU_SRCB_EX <= 0;
 			ALU_FUN_EX <= 0;	
 			RF_WR_SEL_EX <= 0;
-			PC_WRITE_EX <= 0;	
+			PC_WRITE_EX <= 1; // Set high to restart PC at zero	
 			MEM_WRITE_EX <= 0;
-			REG_WRITE_EX <= 0;
+			REG_WRITE_EX <= 0; 
 			MEM_READ_2_EX <= 0;
 			RS1_EX <= 0;
 			RS2_EX <= 0;

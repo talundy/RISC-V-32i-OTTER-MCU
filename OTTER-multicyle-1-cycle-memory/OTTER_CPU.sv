@@ -54,7 +54,7 @@ module OTTER_MCU(input CLK,
         .PC_DIN(pc_value), 
 		.PC_COUNT(pc));   
     
-    // Creates a 2-to-1 multiplexor used to select the source of the next PC
+    // Creates a 6-to-1 multiplexor used to select the source of the next PC
     Mult6to1 PCdatasrc (next_pc, 
 		jalr_pc, 
 		branch_pc, 

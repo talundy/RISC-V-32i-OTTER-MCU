@@ -52,7 +52,7 @@ module OTTER_mem_dualport(MEM_CLK,MEM_ADDR1,MEM_ADDR2,MEM_DIN2,MEM_WRITE2,MEM_RE
    logic [31:0] memory [0:2**ACTUAL_WIDTH-1];
     
     initial begin
-        $readmemh("test_all.txt", memory, 0, 2**ACTUAL_WIDTH-1);
+        $readmemh("mem.txt", memory, 0, 2**ACTUAL_WIDTH-1);
     end 
     
     
@@ -129,7 +129,7 @@ module OTTER_mem_dualport(MEM_CLK,MEM_ADDR1,MEM_ADDR2,MEM_DIN2,MEM_WRITE2,MEM_RE
     (* ram_decomp = "power" *) logic [31:0] memory [0:2**ACTUAL_WIDTH-1];
     
     initial begin
-        $readmemh("test_all.txt", memory, 0, 2**ACTUAL_WIDTH-1);
+        $readmemh("mem.txt", memory, 0, 2**ACTUAL_WIDTH-1);
     end 
     
 

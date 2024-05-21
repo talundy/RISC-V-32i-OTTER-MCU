@@ -27,7 +27,7 @@ module OTTER_PL_Decoder(
     input CU_BR_EQ,
     input CU_BR_LT,
     input CU_BR_LTU,
-	//input rst,	// need to be fully-fleshed out
+	input RST,	// need to be fully-fleshed out
 	//input intr,	// nneeds to be implemented
     input intTaken,
     output logic CU_ALU_SRCA,
@@ -134,8 +134,22 @@ module OTTER_PL_Decoder(
         end
          
 //////// PIPELINE SIGNALS ///////////////////////////////////////////////	
+
+
 		// PCWrite (driven high on B-type, jal, jalr, & mret)
-		
+		always_comb begin
+			if(RST) begin
+				PC_WRITE = 1;
+			end
+			case(CU_OPCODE)
+				BRANCH: PC_WRITE = 1;
+				JAL: PC_WRITE = 1;
+				JALR: PC_WRITE = 1;
+				SYSTEM: PC_WRITE = 1;
+				default: PC_WRITE = 1;
+			endcase
+		end
+						
 		// regWrite (driven high on U-type, I-type, R-type, jal, & csrrw)
 		always_comb begin
 			case(CU_OPCODE)
@@ -158,7 +172,7 @@ module OTTER_PL_Decoder(
 		end	
 
 		// memRead1 (Ins. mem.) (driven high for no hazards))
-		MEM_READ_1 = 1;	
+		//MEM_READ_1 = 1;	
 
 		// memRead2 (Data mem.) (driven high for load instrutions)
 		always_comb begin
