@@ -3,118 +3,7 @@
 
 
 
-// ! Add Signals Here
-typedef struct packed {
 
-// Fetch Stage Signals ///////////////////////////////////////
-	logic [31:0] ir_IF;
-	logic [31:0] pc_IF;
-	//logic [31:0] next_pc_IF;
-
-// Decode Stage Signals ///////////////////////////////////////
-   	
-	//****** DECODER ******//
-	// CONTROL OUTPUTS
-	logic [3:0] alu_fun_ID;
-	logic alu_srcA_ID;
-	logic [1:0] alu_srcB_ID;
-	logic [1:0] rf_wr_sel_ID;
-	logic [3:0] pcSource_ID;
-		// READ/WRITE
-	logic pcWrite_ID, regWrite_ID, memWrite_ID, memRead1_ID, memRead2_ID;
-	// CONTROL INPUTS
-	logic br_lt, br_eq, br_ltu; // No ID postfix as these don't progress through pipeine
-
-	//****** INSTRUCTION STUFF ********//
-	logic [6:0] opcode;
-	logic [3:0] func3;
-	logic [5:0] func7;
-	//logic [10:0] func12;	//ir[31:20]	
-	logic [4:0] rs1_addr, rs2_addr, rd_addr_ID;	
-	logic [1:0] size_ID;
-	logic sign_ID;
-
-	//****** REGISTER FILE ******//
-	logic [31:0] rs1_ID, rs2_ID;
-
-	//****** BRANCH COND. GEN, IMMEDIATES *******//
-	logic [31:0] U_immed_ID;
-	logic [31:0] I_immed_ID;
-	logic [31:0] S_immed_ID;
-	logic [31:0] B_immed;
-	logic [31:0] J_immed;
-	logic [31:0] jal_ID;
-	logic [31:0] branch_ID;
-	logic [31:0] jalr_ID;
-	
-	//****** PASSTHROUGHS *******//
-	logic [31:0] pc_ID, next_pc_ID;
-	// logic [31:0] ir_ID;
-
-
-// Execute Stage Signals ///////////////////////////////////////
-   	//****** DECODER ******//
-	// CONTROL OUTPUTS
-	logic [3:0] alu_fun_EX;
-	logic alu_srcA_EX;
-	logic [1:0] alu_srcB_EX;
-	logic [1:0] rf_wr_sel_EX;
-	logic [3:0] pcSource_EX;
-		// READ/WRITE
-	logic pcWrite_EX, regWrite_EX, memWrite_EX, memRead1_EX, memRead2_EX;
-	
-
-
-	//****** BRANCH COND. GEN, IMMEDIATES *******//
-	logic [31:0] U_immed_EX;
-	logic [31:0] I_immed_EX;
-	logic [31:0] S_immed_EX;
-	logic [31:0] B_immed_EX;
-	logic [31:0] J_immed_EX;
-	// jump/branch
-	logic [31:0] jal_EX;
-	logic [31:0] branch_EX;
-	logic [31:0] jalr_EX;
-
-	//****** INSTRUCTION STUFF ********//
-	logic [31:0] rs1_EX, rs2_EX;
-   	
-	//****** ALU ******//
-	logic [31:0] alu_result_EX;
-
-	//****** PASSTHROUGHS *******//
-	logic [31:0] ir_EX, pc_EX, next_pc_EX;
-	logic [4:0] rd_addr_EX;
-	logic [1:0] size_EX;
-	logic sign_EX;
-
-
-// Memory Stage Signals ///////////////////////////////////////
-  	logic [31:0] alu_result_MEM;
-	logic [31:0] next_pc_MEM;   
-	logic [31:0] rs2_MEM;
-	logic [4:0] rd_addr_MEM;
-
-   	//****** CONTROL ******//
-	logic regWrite_MEM;
-	logic [1:0] rf_wr_sel_MEM;
-	logic memRead2_MEM;
-	logic memWrite_MEM;
-	logic [1:0] size_MEM;
-	logic sign_MEM;
-
-// Writeback Stage Signals ///////////////////////////////////////
-	logic [31:0] dout2;	
-	logic [31:0] alu_result_WB;
-	logic [31:0] next_pc_WB;
-	logic regWrite_WB;
-	logic [1:0] rf_wr_sel_WB;
-	logic [4:0] rd_addr_WB;
-
-// Interrupt/Reset/Ind. Signals ///////////////////////////////////////
-	logic intTaken;
-
-} Instr_t;
 
 
 module OTTER_MCU (
@@ -127,11 +16,11 @@ module OTTER_MCU (
     output logic IOBUS_WR
 );
 
-    Instr_t instr;
 
 // *********************************************************************************
 // * MMIO Stuff
 // *********************************************************************************
+	wire [31:0] rs2_ID;
 	assign IOBUS_ADDR = alu_result;
 	assign IOBUS_OUT = rs2_ID;
 
@@ -140,6 +29,8 @@ module OTTER_MCU (
 // *********************************************************************************
 // * Interrupt/Reset Logic
 // *********************************************************************************
+    wire [31:0] ir_ID;
+
 
 // CSR Registers and interrupt logic
 	CSR CSRs(
@@ -171,12 +62,15 @@ module OTTER_MCU (
 // *********************************************************************************
 
 // INTERNAL SIGNALS
-
-	logic [31:0] next_pc_IF;
+    wire [31:0] pc_IF;
+   	wire [31:0] ir_IF;
+    wire [31:0] pc_ID, next_pc_ID;
+	wire [31:0] dout2_MEM;
+	wire [31:0] next_pc_IF;
 	
 	assign next_pc_IF = pc_IF + 4; //byte-aligned
 	
-	logic pc_value;			// pc mux to pc
+	wire [31:0] pc_value;			// pc mux to pc
 
 // Program Counter
 	ProgCount PC (
@@ -235,11 +129,47 @@ module OTTER_MCU (
 // *********************************************************************************
 // * Decode (Register File) stage
 // *********************************************************************************
-   wire [31:0] ir_ID;
-   
+ // Decode Stage Signals ///////////////////////////////////////
+	//****** DECODER ******//
+	// CONTROL OUTPUTS
+	wire [3:0] alu_fun_ID;
+	wire alu_srcA_ID;
+	wire [1:0] alu_srcB_ID;
+	wire [1:0] rf_wr_sel_ID;
+	wire [3:0] pcSource_ID;
+		// READ/WRITE
+	wire pcWrite_ID, regWrite_ID, memWrite_ID, memRead1_ID, memRead2_ID;
+	// CONTROL INPUTS
+	wire br_lt, br_eq, br_ltu; // No ID postfix as these don't progress through pipeine
+
+
+	//****** REGISTER FILE ******//
+	wire [31:0] rs1_ID;
+
+	//****** BRANCH COND. GEN, IMMEDIATES *******//
+	wire [31:0] U_immed_ID;
+	wire [31:0] I_immed_ID;
+	wire [31:0] S_immed_ID;
+	wire [31:0] B_immed;
+	wire [31:0] J_immed;
+	wire [31:0] jal_ID;
+	wire [31:0] branch_ID;
+	wire [31:0] jalr_ID;
+	
+	//****** PASSTHROUGHS *******//
+	//****** INSTRUCTION STUFF ********//
+	wire [6:0] opcode;
+	wire [3:0] func3;
+	wire [5:0] func7;
+	//logic [10:0] func12;	//ir[31:20]	
+	wire [4:0] rs1_addr, rs2_addr, rd_addr_ID;	
+	wire [1:0] size_ID;
+	wire sign_ID; 
+	
+	wire [31:0] ir_EX, pc_EX, next_pc_EX;
+
 // Decode Stage Connections
-	logic br_lt, br_eq, br_ltu;
-	logic rfIn;
+	wire rfIn;
 	assign opcode = ir_ID[6:0];
 	assign func3 = ir_ID[14:12];
 	assign func7 = ir_ID[31:25];
@@ -367,8 +297,40 @@ module OTTER_MCU (
 // *********************************************************************************
 // * Execute (ALU) Stage
 // *********************************************************************************
-	// Execute stage signals
-	logic aluAin, aluBin;
+	// Execute Stage Signals ///////////////////////////////////////
+   	//****** DECODER ******//
+	// CONTROL OUTPUTS
+	wire [3:0] alu_fun_EX;
+	wire alu_srcA_EX;
+	wire [1:0] alu_srcB_EX;
+	wire [1:0] rf_wr_sel_EX;
+	wire [3:0] pcSource_EX;
+		// READ/WRITE
+	wire pcWrite_EX, regWrite_EX, memWrite_EX, memRead1_EX, memRead2_EX;
+	
+
+
+	//****** BRANCH COND. GEN, IMMEDIATES *******//
+	wire [31:0] U_immed_EX;
+	wire [31:0] I_immed_EX;
+	wire [31:0] S_immed_EX;
+	wire [31:0] B_immed_EX;
+	wire [31:0] J_immed_EX;
+	// jump/branch
+	wire [31:0] jal_EX;
+	wire [31:0] branch_EX;
+	wire [31:0] jalr_EX;
+
+	//****** INSTRUCTION STUFF ********//
+	wire [31:0] rs1_EX, rs2_EX;
+   	
+	wire [4:0] rd_addr_EX;
+	wire [1:0] size_EX;
+	wire sign_EX;
+	wire aluAin, aluBin;
+	wire [31:0] alu_result_EX;
+
+	//****** PASSTHROUGHS *******//
 
 // ALU Source A Multiplexor
 	Mult2to1 ALUAinput(
@@ -424,6 +386,20 @@ module OTTER_MCU (
 // *********************************************************************************
 // * Memory (Data Memory) stage 
 // *********************************************************************************
+// Memory Stage Signals ///////////////////////////////////////
+  	wire [31:0] alu_result_MEM;
+	wire [31:0] next_pc_MEM;   
+	wire [31:0] rs2_MEM;
+	wire [4:0] rd_addr_MEM;
+
+   	//****** CONTROL ******//
+	wire regWrite_MEM;
+	wire [1:0] rf_wr_sel_MEM;
+	wire memRead2_MEM;
+	wire memWrite_MEM;
+	wire [1:0] size_MEM;
+	wire sign_MEM;
+
 
 // MEM_WB Pipeline Register
 	MEM_WB mem_wb(
@@ -450,7 +426,15 @@ module OTTER_MCU (
 // *********************************************************************************
 // * Write (Write Back) stage
 // *********************************************************************************
-    
+ // Writeback Stage Signals ///////////////////////////////////////
+	wire [31:0] dout2;	
+	wire [31:0] alu_result_WB;
+	wire [31:0] next_pc_WB;
+	wire regWrite_WB;
+	wire [1:0] rf_wr_sel_WB;
+	wire [4:0] rd_addr_WB;
+
+   
 // Register Input Multiplexor
 	Mult4to1 regWriteback(
 		next_pc_WB,
