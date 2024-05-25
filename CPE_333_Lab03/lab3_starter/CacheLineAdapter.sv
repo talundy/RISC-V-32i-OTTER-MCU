@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: Cow Poly
+// Company: Cow Poly 
 // Engineer: Danny Gutierrez
 // 
 // Create Date: 04/07/2024 12:16:02 AM
