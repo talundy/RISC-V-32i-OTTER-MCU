@@ -21,13 +21,13 @@
 //`include "opcodes.svh"
 
 module OTTER_PL_Decoder(
-    input [6:0] CU_OPCODE,
-    input [2:0] CU_FUNC3,
-    input [6:0] CU_FUNC7,
-    input CU_BR_EQ,
-    input CU_BR_LT,
-    input CU_BR_LTU,
-	input RST,	// need to be fully-fleshed out
+    input wire [6:0] CU_OPCODE,
+    input wire [2:0] CU_FUNC3,
+    input wire [6:0] CU_FUNC7,
+    input wire CU_BR_EQ,
+    input wire CU_BR_LT,
+    input wire CU_BR_LTU,
+	input wire RST,	// need to be fully-fleshed out
 	//input intr,	// nneeds to be implemented
     input intTaken,
     output logic CU_ALU_SRCA,
