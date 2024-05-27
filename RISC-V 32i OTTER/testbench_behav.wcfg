@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="testbench_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="testbench" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="80.494 ns"></ZoomEndTime>
+      <Cursor1Time time="2.545 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="218"></NameColumnWidth>
+      <ValueColumnWidth column_width="76"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="30" />
+   <wvobject type="logic" fp_name="/testbench/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/dut/sclk">
+      <obj_property name="ElementShortName">sclk</obj_property>
+      <obj_property name="ObjectShortName">sclk</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/ir_ID">
+      <obj_property name="ElementShortName">ir_ID[31:0]</obj_property>
+      <obj_property name="ObjectShortName">ir_ID[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/rs1_addr">
+      <obj_property name="ElementShortName">rs1_addr[4:0]</obj_property>
+      <obj_property name="ObjectShortName">rs1_addr[4:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/rs2_addr">
+      <obj_property name="ElementShortName">rs2_addr[4:0]</obj_property>
+      <obj_property name="ObjectShortName">rs2_addr[4:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/rd_addr_ID">
+      <obj_property name="ElementShortName">rd_addr_ID[4:0]</obj_property>
+      <obj_property name="ObjectShortName">rd_addr_ID[4:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/rd_addr_EX">
+      <obj_property name="ElementShortName">rd_addr_EX[4:0]</obj_property>
+      <obj_property name="ObjectShortName">rd_addr_EX[4:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/PC/PC_DIN">
+      <obj_property name="ElementShortName">PC_DIN[31:0]</obj_property>
+      <obj_property name="ObjectShortName">PC_DIN[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/pcSource_ID">
+      <obj_property name="ElementShortName">pcSource_ID[3:0]</obj_property>
+      <obj_property name="ObjectShortName">pcSource_ID[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/pcSource_EX">
+      <obj_property name="ElementShortName">pcSource_EX[3:0]</obj_property>
+      <obj_property name="ObjectShortName">pcSource_EX[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/dut/MCU/pcWrite_EX">
+      <obj_property name="ElementShortName">pcWrite_EX</obj_property>
+      <obj_property name="ObjectShortName">pcWrite_EX</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/dut/MCU/pcWrite_ID">
+      <obj_property name="ElementShortName">pcWrite_ID</obj_property>
+      <obj_property name="ObjectShortName">pcWrite_ID</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/PC/PC_COUNT">
+      <obj_property name="ElementShortName">PC_COUNT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">PC_COUNT[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/pc_IF">
+      <obj_property name="ElementShortName">pc_IF[31:0]</obj_property>
+      <obj_property name="ObjectShortName">pc_IF[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/MCU/id_ex/PC_ID">
+      <obj_property name="ElementShortName">PC_ID[31:0]</obj_property>
+      <obj_property name="ObjectShortName">PC_ID[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/btnl">
+      <obj_property name="ElementShortName">btnl</obj_property>
+      <obj_property name="ObjectShortName">btnl</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/btnc">
+      <obj_property name="ElementShortName">btnc</obj_property>
+      <obj_property name="ObjectShortName">btnc</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/switches">
+      <obj_property name="ElementShortName">switches[15:0]</obj_property>
+      <obj_property name="ObjectShortName">switches[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/ps2clk">
+      <obj_property name="ElementShortName">ps2clk</obj_property>
+      <obj_property name="ObjectShortName">ps2clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/ps2data">
+      <obj_property name="ElementShortName">ps2data</obj_property>
+      <obj_property name="ObjectShortName">ps2data</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/leds">
+      <obj_property name="ElementShortName">leds[15:0]</obj_property>
+      <obj_property name="ObjectShortName">leds[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/cathodes">
+      <obj_property name="ElementShortName">cathodes[7:0]</obj_property>
+      <obj_property name="ObjectShortName">cathodes[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/anodes">
+      <obj_property name="ElementShortName">anodes[3:0]</obj_property>
+      <obj_property name="ObjectShortName">anodes[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/SSG_DISP/DATA_IN">
+      <obj_property name="ElementShortName">DATA_IN[15:0]</obj_property>
+      <obj_property name="ObjectShortName">DATA_IN[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/dut/SSG_DISP/BCD_Val">
+      <obj_property name="ElementShortName">BCD_Val[15:0]</obj_property>
+      <obj_property name="ObjectShortName">BCD_Val[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/vga_rgb">
+      <obj_property name="ElementShortName">vga_rgb[7:0]</obj_property>
+      <obj_property name="ObjectShortName">vga_rgb[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/vga_hs">
+      <obj_property name="ElementShortName">vga_hs</obj_property>
+      <obj_property name="ObjectShortName">vga_hs</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/vga_vs">
+      <obj_property name="ElementShortName">vga_vs</obj_property>
+      <obj_property name="ObjectShortName">vga_vs</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/tx">
+      <obj_property name="ElementShortName">tx</obj_property>
+      <obj_property name="ObjectShortName">tx</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/BTNL">
+      <obj_property name="ElementShortName">BTNL</obj_property>
+      <obj_property name="ObjectShortName">BTNL</obj_property>
+   </wvobject>
+</wave_config>
