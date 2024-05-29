@@ -1,0 +1,28 @@
+BEHAVIOURAL DESCRIPTION
+
+Hits in 2 cycles: 
+Cycle 1: Start read on:
+	- tag array
+	- valid array 
+	- data array
+Cycle 2: 
+	- compare tags
+	- check if hit
+		if read hit: use offset to return right data from block, update:
+		if write hit: use offset to figure out which part of block 
+			to overrite to set dirty, update LRU
+
+if miss: grab LRU bit
+	assert busy/stall
+Cycle 3: 
+	- check LRU for eviction candidate
+	- if !valid or valid*!dirty, start read cl_adapter, then transition to a cache refill state
+	- if valid*dirty, write_back cache data w/ cl_adapter, clear valid+dirty, then transition to a mem_read
+
+Cycle Refill
+	- if CL_adapter had data ready, write to tag, data, valid, dirty, LRU + go to cycle 2
+	- else: wait here
+
+Cycle mem_read: 
+	- if CL_adapter isn't busy/stalled, read from new address + transistion to cache read 
+	- else: wait here
