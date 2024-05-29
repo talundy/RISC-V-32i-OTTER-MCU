@@ -28,6 +28,14 @@
 
 
 module CacheController(
-    input CLK
+    input CLK,
+	input hit,
+	input readen1,
+	input readen2,
+	output logic stall,
+	output logic memRE,
+	output logic memWE,
+	output logic valid1,
+	output logic valid2
     );
 endmodule

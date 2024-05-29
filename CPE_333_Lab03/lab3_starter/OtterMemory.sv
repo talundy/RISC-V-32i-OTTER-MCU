@@ -66,17 +66,93 @@ module OtterMemory (
     );
     
     /* ADD YOUR DESIGN HERE */
+	// SIGNALS //////////////////////////////////////////////////
+	wire addr_sel, valid1_sel, valid2_sel;
+	
+	wire re_MEM, we_MEM ;
+	wire cacheValid1, cacheValid2 ccValid1, ccValid2;	
+	wire [31:0] addr, data_MEM;
+
+	wire re_cache, stall;
+	assign re_cache = MEM_RDEN1 + MEM_RDEN2;
+	
 
     // L1 or L1s
+	TwoWayCache myCache(
+		.CLK(MEM_CLK),
+		// Inputs 
+		.memRdEn1(MEM_RDEN1),
+		.memRdEn2(MEM_RDEN2),
+		.RE(re_cache),
+		.WE(MEM_WE2),
+		.ADDR(addr),
+		.DATA_IN2(MEM_DIN2),
+		.SIZE(MEM_SIZE),
+		.SIGN(MEM_SIGN),
+		.stall(stall)
+		// Outputs
+		.valid1(),
+		.valid2(),
+		.DATA_OUT2()
+		);
+
 
     CacheLineAdapter myCacheLineAdapter (
         .CLK        ()
     );
 
     // Your choice of dual port or single port main memory
+	
+	SinglePortDelayMemory myMem(
+		// Inputs
+		.CLK(MEM_CLK),
+		.RE(re_MEM),
+		.WE(we_MEM),
+		.DATA_IN(),
+		.ADDR(),
+		// Outputs
+		.MEM_VALID(),
+		.DATA_OUT(data_MEM)
+		)
+
 
     CacheController myCacheController (
-        .CLK        ()
+        // Inputs
+		.CLK(MEM_CLK),
+		.hit(),
+		.readen1(MEM_RDEN1),
+		.readen2(MEM_RDEN2),
+		// Outputs
+		.stall(stall),
+		.memRE(re_MEM),
+		.memWE(we_MEM),
+		.valid1(ccValid1),
+		.valid2(ccValid2)
     );
+
+	// MULTIPLEXORS
+	Mult4to1 addressMux(
+		MEM_ADDR1,
+		MEM_ADDR2,
+		IO_IN,
+		data_MEM,
+		addr,
+		addr_sel
+		);
+	
+	Mult2to1 valid1Mux(
+		cacheValid1,
+		ccValid1,
+		MEM_VALID1,
+		valid1_sel
+		);
+	Mult2to! valid2Mux(
+		cacheValid2,
+		ccValid2,
+		MEM_VALID2,
+		valid2_sel
+		);
+
+
 
 endmodule
