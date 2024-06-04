@@ -29,7 +29,15 @@
 
 
 module CacheLineAdapter (
-    input CLK
+    input CLK,
+    input RST,
+    input [255:0] cacheline_in,
+    input [31:0] addr,
+    input [31:0] data_in,
+    
+    output logic [255:0] cacheline_out,
+    output logic [31:0] mem_addr,
+    output logic [31:0] mem_pkg_out
     );
     
 endmodule

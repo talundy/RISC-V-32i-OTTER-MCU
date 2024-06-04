@@ -22,7 +22,7 @@
 
 module cache(
     input CLK,
-    input Address,
+    input [31:0] Address,
     input logic write_enable,
     input logic read_enable,
     output logic [32:0]DataOut
@@ -31,7 +31,7 @@ module cache(
     logic [2:0]set;
     logic [27:0]tag;
     logic hit;
-    input logic [31:0]write_data;
+    logic [31:0] write_data;
     logic [8:0] LRU;
     logic [31:0]AdjustOffset;
     logic [31:0]data_arrayW1[7:0];
@@ -42,7 +42,7 @@ module cache(
     
     always_ff @ (posedge CLK)
     begin
-        Offset = Address[5:0];
+        Offset <= Address[5:0];
         set = Address[8:6];
         tag = Address[31:9];
         tagcomparW1 = tag_array[set];

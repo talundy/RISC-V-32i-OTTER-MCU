@@ -40,13 +40,13 @@ module CacheController(
     input CLK,
     input RST,
 	input hit,
-	input readen1,
-	input readen2,
+	input wen,
+	input ren,
+	input mem_valid_in,
 	output logic stall,
 	output logic memRE,
 	output logic memWE,
-	output logic valid1,
-	output logic valid2
+	output logic mem_valid_out
     );
     
     //// CacheController as State Machine
