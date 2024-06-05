@@ -37,7 +37,11 @@ module MemoryWrapper(
 
     
     wire mem_valid_in;                                          // connects MEM to CC
+    wire re, we;                                                // connects CC to MEM
     wire [31:0] data_in, data_out, addr;                        // connects MEM to CLA
+    wire stall;                                                 // indicate stall to cache. from CC
+    wire miss;                                                  // indicate miss to CC. from cache
+
     
     //// CACHE ///////////////////////////////////////////////////////////////////////
     logic [256:0] Way0, Way1;                                   // The actual ways (data)
@@ -60,7 +64,7 @@ module MemoryWrapper(
         
         
         if(MEM_RDEN) begin          // read attempt
-            //compare tags, etc
+            //compare tags, et
         end else if (MEM_WE) begin  // write attempt
         
         end else begin
@@ -72,14 +76,14 @@ module MemoryWrapper(
     CacheController myCacheController (
        .CLK(MEM_CLK),
        .RST(MEM_RST),
-       .hit(),
+       .miss(miss),
 	   .wen(MEM_WE),
 	   .ren(MEM_RDEN),
 	   .mem_valid_in(mem_valid_in),
 	   
-	   .stall(),
-	   .memRE(),
-	   .memWE(),
+	   .stall(stall),
+	   .memRE(re),
+	   .memWE(we),
 	   .mem_valid_out()
     );
     
@@ -100,8 +104,8 @@ module MemoryWrapper(
           .BURST_LEN      (4)
          ) mySinglePortMemory (
           .CLK            (MEM_CLK),
-          .RE             (),
-          .WE             (),
+          .RE             (re),
+          .WE             (we),
           .DATA_IN        (data_out),
           .ADDR           (addr),
           .DATA_OUT       (data_in),
