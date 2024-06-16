@@ -1,0 +1,69 @@
+Changes made to OTTER:
+- Created the BRANCH COND GEN module, for increased modularity. 
+    - Git committed.
+- Created the IMMED GEN module, for increased modularity. 
+    - Git committed. 
+- Created the BRANCH ADDR GEN, for increased modularity 
+    - Git committed. 
+- Added new pipelined decoder with new connections for control signals
+- Added Pipeline Registers:
+    - Wrote IF_ID register
+    - Wrote MEM_WB register
+    - Wrote EX_MEM register
+    - Wrote ID_EX register
+    - Git committed.
+- Added Pipeline Signals
+    - Git committed. 
+- ★ Note that memRead1 is tied high for now. This will need to be changed when pipeline flushing is enabled
+- Connected the signals (Verification needed)
+    - Git committed.
+- Fixed main syntax errors in Vivado. Removed FSM, old MCU top file, old Decoder. 
+    - Git committed. 
+- Changed register file to write on clock negative edge
+    - Note: Asynchronous read means the correct value should be read before + after in pipeline
+- Fixed more errors, now able to generate schematic diagram for visual debug
+- Added cache stuff for lab3. 
+    - Git committed. 
+- Modified PL_Decoder to add new signals
+    - Git 
+- Added pcWrite stuff to PL_Decoder. (PC source wasn’t getting driven.)
+- Added basic reset functionality to test bench, decoder, to get the program to start. 
+    - Changed ID_EX pipeline register to set PCWrite high on reset (to restart PC from zero)
+    - Fixed pc+4 bug (not wired up)
+    - Changed decoder to set pc_write to 1 on default
+    - ISSUE: PC + 4 is not being assigned correctly. Trying to understand why. 
+        - Fixed: No goddamn clue what was wrong. 
+    - Git commit (1) - saving for branch creation for lab 3
+- Fixed PC fail to cycle. 
+    - This was done by fixing various bus mistakes, during which I’ve discovered that wire types and logic types are not, in fact, synonymous. I have yet to understand their differences, but I’m sure that this will have an effect on the functioning of other units connected within the MCU via logic types where there should be wires. 
+- Changed all logic types to wires for the time being.
+    - Git committed. 
+- Pipeline internal register logic was incorrect. Data is being held back two cycles rather than one. 
+    - Fixed IF_ID, moving to fix others. 
+    - Fixed others
+    - Git committed 
+- Moved back to Ryzen laptop for editing (Vivado 2020.2)
+    - Tied memRead1 high
+    - Wired up ImmedGen module to IR signal
+    - Verifying instruction: add x0, x0, 0
+    - Fixed aluin busses
+    - Fixed pc_source bus size in ID_EX
+    - Fixed rf_wr_sel bus size in MEM_WB, EX_MEM
+    - Wired rf_wr_sel to decoder
+    - Fixed bus size of rd_addr
+    - (Changes made on non-tracked files. Need to resolve.)
+    - Latched pc inputs to IF_ID to sync things up
+    - addi appears to be working correctly. 
+Modifications to make:
+- Create the IMMED GEN module, to more smoothly integrate into design. 
+- Create the BRANCH ADDR GEN module, for increased modularity. 
+- Create the BRANCH COND GEN module, for increased modularity.
+- Add the size/sign signals in the necessary stages of the pipeline design
+- Add the pipeline registers
+- Add pipeline registers to new wrapper
+- Add signals
+- Connect the elements
+- ★ Modify the decoder to replace the FSM 
+    - Program the new signals 
+- Ensure signal synchronization between stages
+- Verify test_all
